@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Plantilla para el Proyecto Final DevOps - EC2 y S3'
+
+Resources:
+  MiInstanciaServidor:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0a3c3a20c09d6f377
+      IamInstanceProfile: LabInstanceProfile
+      Tags:
+        - Key: Name
+          Value: ServidorIaC-Proyecto
+        - Key: Project
+          Value: DevOps-Tecmilenio
+
+  MiBucketDatos:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub "bucket-proyecto-devops-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+
+Outputs:
+  InstanceId:
+    Description: ID de la instancia creada
+    Value: !Ref MiInstanciaServidor
+  BucketName:
+    Description: Nombre del bucket creado
+    Value: !Ref MiBucketDatos
