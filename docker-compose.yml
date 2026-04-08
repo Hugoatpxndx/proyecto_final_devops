@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: servidor-web-devops
+    ports:
+      - "8080:80"
+    networks:
+      - mi_red_devops
+    volumes:
+      - logs_nginx:/var/log/nginx
+
+  db:
+    image: redis:alpine
+    container_name: base-datos-devops
+    networks:
+      - mi_red_devops
+    volumes:
+      - datos_db:/data
+
+networks:
+  mi_red_devops:
+    driver: bridge
+
+volumes:
+  logs_nginx:
+  datos_db:
