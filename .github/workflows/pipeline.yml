@@ -10,9 +10,11 @@ jobs:
     steps:
       - name: Checkout del codigo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: 1. Pruebas Automatizadas (Validar YAML)
-        run: docker compose config
+        run: docker-compose config || docker compose config
 
       - name: 2. Copiar archivos al Servidor Linux (EC2)
         uses: appleboy/scp-action@master
@@ -30,6 +32,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo apt-get update -y
+            sudo apt-get install docker-compose -y
             cd /home/ubuntu/proyecto_final_devops
             chmod +x deploy.sh
             ./deploy.sh
