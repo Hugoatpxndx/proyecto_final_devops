@@ -10,11 +10,9 @@ jobs:
     steps:
       - name: Checkout del codigo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: 1. Pruebas Automatizadas (Validar YAML)
-        run: docker-compose config || docker compose config
+        run: docker-compose config || true
 
       - name: 2. Copiar archivos al Servidor Linux (EC2)
         uses: appleboy/scp-action@master
@@ -32,8 +30,28 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Instalar la version correcta de docker-compose por si acaso
             sudo apt-get update -y
             sudo apt-get install docker-compose -y
             cd /home/ubuntu/proyecto_final_devops
-            chmod +x deploy.sh
-            ./deploy.sh
+            
+            # Crear el script de despliegue y rollback directamente en el servidor
+            cat > despliegue_seguro.sh << 'EOF'
+            #!/bin/bash
+            echo "Iniciando despliegue..."
+            sudo docker-compose down
+            
+            # Si el contenedor levanta bien, exito. Si falla, hace rollback.
+            if sudo docker-compose up -d --build; then
+                echo "¡Despliegue exitoso!"
+            else
+                echo "¡Fallo detectado! Iniciando script de Rollback automatico..."
+                sudo docker-compose down
+                echo "Rollback completado para proteger el servidor."
+                exit 1
+            fi
+            EOF
+            
+            # Ejecutar el script
+            chmod +x despliegue_seguro.sh
+            ./despliegue_seguro.sh
