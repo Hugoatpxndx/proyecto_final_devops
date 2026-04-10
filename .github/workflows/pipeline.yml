@@ -30,28 +30,23 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Instalar la version correcta de docker-compose por si acaso
             sudo apt-get update -y
             sudo apt-get install docker-compose -y
             cd /home/ubuntu/proyecto_final_devops
             
-            # Crear el script de despliegue y rollback directamente en el servidor
             cat > despliegue_seguro.sh << 'EOF'
             #!/bin/bash
-            echo "Iniciando despliegue..."
+            echo "Iniciando despliegue seguro..."
             sudo docker-compose down
             
-            # Si el contenedor levanta bien, exito. Si falla, hace rollback.
             if sudo docker-compose up -d --build; then
                 echo "¡Despliegue exitoso!"
             else
-                echo "¡Fallo detectado! Iniciando script de Rollback automatico..."
+                echo "¡Fallo detectado! Iniciando script de Rollback..."
                 sudo docker-compose down
-                echo "Rollback completado para proteger el servidor."
                 exit 1
             fi
             EOF
             
-            # Ejecutar el script
             chmod +x despliegue_seguro.sh
             ./despliegue_seguro.sh
