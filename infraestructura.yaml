@@ -1,30 +1,35 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Plantilla para el Proyecto Final DevOps - EC2 y S3'
+Description: 'Infraestructura automatizada para Soluciones Tecnológicas del Futuro - EC2 y S3'
 
 Resources:
-  MiInstanciaServidor:
+  ServidorAppEC2:
     Type: 'AWS::EC2::Instance'
     Properties:
       InstanceType: t2.micro
+      # Usamos la misma AMI de tu avance anterior (asegúrate de estar en us-east-1)
       ImageId: ami-0a3c3a20c09d6f377
       IamInstanceProfile: LabInstanceProfile
       Tags:
         - Key: Name
-          Value: ServidorIaC-Proyecto
-        - Key: Project
-          Value: DevOps-Tecmilenio
+          Value: Servidor-IaC-DevOps
+        - Key: Proyecto
+          Value: Automatizacion-AWS
 
-  MiBucketDatos:
+  BucketArchivosS3:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub "bucket-proyecto-devops-${AWS::AccountId}"
+      # El nombre debe ser único en todo el mundo, por eso concatenamos tu AccountId
+      BucketName: !Sub 'bucket-proyecto-devops-${AWS::AccountId}'
       VersioningConfiguration:
         Status: Enabled
+      Tags:
+        - Key: Name
+          Value: BucketDatosProyecto
 
 Outputs:
-  InstanceId:
-    Description: ID de la instancia creada
-    Value: !Ref MiInstanciaServidor
-  BucketName:
-    Description: Nombre del bucket creado
-    Value: !Ref MiBucketDatos
+  InstanciaCreada:
+    Description: ID de la instancia EC2 desplegada
+    Value: !Ref ServidorAppEC2
+  NombreDelBucket:
+    Description: Nombre del bucket S3 creado
+    Value: !Ref BucketArchivosS3
