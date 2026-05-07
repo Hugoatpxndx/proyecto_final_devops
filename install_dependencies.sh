@@ -7,7 +7,7 @@ echo "Instalando Git, Vim y Python3..."
 sudo apt install -y git vim python3 python3-pip
 
 echo "Instalando Docker..."
-sudo apt install -y docker.io
+
 
 echo "Habilitando e iniciando el servicio de Docker..."
 sudo systemctl enable docker
@@ -23,5 +23,5 @@ git --version
 python3 --version
 docker --version
 echo "=========================================="
-Automatizar la instalación de dependencias.
-Programar tareas con cron para limpieza de logs.
+#Automatizar la instalación de dependencias.
+#Programar tareas con cron para limpieza de logs.
