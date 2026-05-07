@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Arquitectura de Red (VPC) y EC2 con acceso SSM para Proyecto DevOps'
+
+Resources:
+  # 1. Creación de la VPC (Red Virtual)
+  MiVPCProyecto:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: VPC-DevOps-Proyecto
+
+  # 2. Subred Pública (Para recursos que necesitan internet, como tu EC2 web)
+  SubredPublica:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MiVPCProyecto
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: Name
+          Value: Subred-Publica-DevOps
+
+  # 3. Subred Privada (Para bases de datos o recursos internos seguros)
+  SubredPrivada:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MiVPCProyecto
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: Name
+          Value: Subred-Privada-DevOps
+
+  # 4. Internet Gateway (Para darle salida a internet a la subred pública)
+  GatewayInternet:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: IGW-DevOps
+          
+  ConectarGatewayAVPC:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MiVPCProyecto
+      InternetGatewayId: !Ref GatewayInternet
+
+  # 5. Tabla de Enrutamiento
+  TablaRuteoPublica:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MiVPCProyecto
+      Tags:
+        - Key: Name
+          Value: Tabla-Ruteo-Publica
+
+  RutaAInternet:
+    Type: AWS::EC2::Route
+    DependsOn: ConectarGatewayAVPC
+    Properties:
+      RouteTableId: !Ref TablaRuteoPublica
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref GatewayInternet
+
+  AsociarTablaASubredPublica:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubredPublica
+      RouteTableId: !Ref TablaRuteoPublica
+
+  # 6. Grupo de Seguridad Restringido (Sin puerto SSH 22, solo web 80)
+  GrupoSeguridadWeb:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Permitir solo HTTP, bloqueo de SSH para obligar uso de SSM'
+      VpcId: !Ref MiVPCProyecto
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # 7. Instancia EC2 conectada a la nueva red y a Systems Manager (SSM)
+  ServidorDespliegueEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0a3c3a20c09d6f377 # Ubuntu en us-east-1
+      SubnetId: !Ref SubredPublica
+      SecurityGroupIds: 
+        - !Ref GrupoSeguridadWeb
+      IamInstanceProfile: LabInstanceProfile # Perfil que permite conexión SSM
+      Tags:
+        - Key: Name
+          Value: Servidor-App-SSM
