@@ -1,28 +1,32 @@
-version: '3.8'
-
 services:
-  web:
-    build: .
-    container_name: servidor-web-devops
+  servidor_web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_web_devops
     ports:
       - "8080:80"
     networks:
-      - mi_red_devops
+      - red_privada_devops
     volumes:
-      - logs_nginx:/var/log/nginx
+      - volumen_logs_web:/var/log/nginx
+    depends_on:
+      - base_datos_cache
 
-  db:
+  base_datos_cache:
     image: redis:alpine
-    container_name: base-datos-devops
+    container_name: app_cache_devops
     networks:
-      - mi_red_devops
+      - red_privada_devops
     volumes:
-      - datos_db:/data
+      - volumen_datos_redis:/data
 
+# Definición de Redes Personalizadas
 networks:
-  mi_red_devops:
+  red_privada_devops:
     driver: bridge
 
+# Definición de Volúmenes Personalizados
 volumes:
-  logs_nginx:
-  datos_db:
+  volumen_logs_web:
+  volumen_datos_redis:
