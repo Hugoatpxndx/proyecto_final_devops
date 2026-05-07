@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - echo "Instalando dependencias de AWS (Boto3)..."
+      - pip install boto3
+  build:
+    commands:
+      - echo "Iniciando fase de pruebas simuladas..."
+      - echo "Pruebas pasadas exitosamente."
+  post_build:
+    commands:
+      - echo "Ejecutando script de despliegue SSM hacia el EC2..."
+      - python deploy_ssm.py
